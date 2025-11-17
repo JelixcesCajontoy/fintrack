@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Separator } from "@/components/ui/separator";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Pie, PieChart, Cell, Sector } from 'recharts';
 import type { Transaction, Budget, Category } from '@/types';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency } from "@/lib/utils";
 import { TrendingUp, TrendingDown, Scale, PiggyBank, Info, BarChartHorizontalBig, LineChart, PieChart as PieIcon } from 'lucide-react';
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -156,6 +156,8 @@ export const InsightsView: React.FC<InsightsViewProps> = ({
     const expenseChangePercent = previousMonthTotals.expenses > 0 ? (expenseChange / previousMonthTotals.expenses) * 100 : (currentMonthTotals.expenses > 0 ? Infinity : 0);
     const savingsChange = currentMonthTotals.actualSavings - previousMonthTotals.actualSavings;
     const savingsChangePercent = previousMonthTotals.actualSavings !== 0 ? (savingsChange / previousMonthTotals.actualSavings) * 100 : (currentMonthTotals.actualSavings !== 0 ? Infinity : 0);
+    const incomeChange = currentMonthTotals.income - previousMonthTotals.income;
+    const incomeChangePercent = previousMonthTotals.income > 0 ? (incomeChange / previousMonthTotals.income) * 100 : (currentMonthTotals.income > 0 ? Infinity : 0);
 
 
     const formatPercentage = (value: number): string => {
@@ -175,11 +177,28 @@ export const InsightsView: React.FC<InsightsViewProps> = ({
                         A summary of your finances for {format(new Date(currentMonth + '-01T00:00:00'), 'MMMM yyyy')}.
                     </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="flex items-start justify-between">
-                        <div>
-                            <p className="text-sm text-muted-foreground">Total Expenses</p>
-                            <p className="text-2xl font-bold">{formatCurrency(currentMonthTotals.expenses)}</p>
+                <CardContent className="grid gap-4 sm:grid-cols-3">
+                    {/* Total Income */}
+                    <div className="flex items-center space-x-4 rounded-md border p-4">
+                        <TrendingUp className="h-6 w-6 text-muted-foreground" />
+                        <div className="flex-1 space-y-1">
+                            <p className="text-sm font-medium leading-none">Total Income</p>
+                            <p className="text-xl font-bold">{formatCurrency(currentMonthTotals.income)}</p>
+                            <p className={`text-xs ${incomeChange >= 0 ? 'text-accent' : 'text-destructive'}`}>
+                                {previousMonthTotals.income > 0 || currentMonthTotals.income > 0 ? (
+                                    <>
+                                        {incomeChange >= 0 ? '+' : ''}{formatCurrency(incomeChange)} {formatPercentage(incomeChangePercent)} vs last month
+                                    </>
+                                ) : "No income data for comparison"}
+                            </p>
+                        </div>
+                    </div>
+                     {/* Total Expenses */}
+                     <div className="flex items-center space-x-4 rounded-md border p-4">
+                        <TrendingDown className="h-6 w-6 text-muted-foreground" />
+                        <div className="flex-1 space-y-1">
+                             <p className="text-sm font-medium leading-none">Total Expenses</p>
+                            <p className="text-xl font-bold">{formatCurrency(currentMonthTotals.expenses)}</p>
                             <p className={`text-xs ${expenseChange >= 0 && previousMonthTotals.expenses > 0 ? 'text-destructive' : (expenseChange < 0 ? 'text-accent' : 'text-muted-foreground')}`}>
                                 {previousMonthTotals.expenses > 0 || currentMonthTotals.expenses > 0 ? (
                                     <>
@@ -188,13 +207,13 @@ export const InsightsView: React.FC<InsightsViewProps> = ({
                                 ) : "No expense data for comparison"}
                             </p>
                         </div>
-                        <TrendingDown className="h-5 w-5 text-muted-foreground" />
                     </div>
-                    <Separator />
-                    <div className="flex items-start justify-between">
-                         <div>
-                            <p className="text-sm text-muted-foreground">Net Savings</p>
-                            <p className="text-2xl font-bold">{formatCurrency(currentMonthTotals.actualSavings)}</p>
+                     {/* Net Savings */}
+                     <div className="flex items-center space-x-4 rounded-md border p-4">
+                        <PiggyBank className="h-6 w-6 text-muted-foreground" />
+                        <div className="flex-1 space-y-1">
+                            <p className="text-sm font-medium leading-none">Net Savings</p>
+                            <p className="text-xl font-bold">{formatCurrency(currentMonthTotals.actualSavings)}</p>
                             <p className={`text-xs ${savingsChange >= 0 && previousMonthTotals.actualSavings !== 0 ? 'text-accent' : (savingsChange < 0 ? 'text-destructive' : 'text-muted-foreground')}`}>
                                 {previousMonthTotals.actualSavings !== 0 || currentMonthTotals.actualSavings !== 0 ? (
                                     <>
@@ -203,18 +222,6 @@ export const InsightsView: React.FC<InsightsViewProps> = ({
                                 ) : "No savings data for comparison"}
                              </p>
                         </div>
-                        <PiggyBank className="h-5 w-5 text-muted-foreground" />
-                    </div>
-                    <Separator />
-                     <div className="flex items-start justify-between">
-                         <div>
-                            <p className="text-sm text-muted-foreground">Income vs Expenses</p>
-                            <p className="text-2xl font-bold">{formatCurrency(currentMonthTotals.income - currentMonthTotals.expenses)}</p>
-                             <p className="text-xs text-muted-foreground truncate">
-                                Income: {formatCurrency(currentMonthTotals.income)} | Expenses: {formatCurrency(currentMonthTotals.expenses)}
-                            </p>
-                        </div>
-                        <Scale className="h-5 w-5 text-muted-foreground" />
                     </div>
                 </CardContent>
             </Card>
