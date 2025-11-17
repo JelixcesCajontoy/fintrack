@@ -46,7 +46,7 @@ import { useSearchParams } from 'next/navigation';
 import { TransactionReceiptDialog } from "@/components/transaction-receipt-dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useDriverTour } from "@/hooks/use-driver-tour";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuLabel } from "@/components/ui/dropdown-menu";
 import { Progress } from "@/components/ui/progress";
 import { AddSavingGoalDialog } from "@/components/add-saving-goal-dialog";
 import { Calendar as CalendarPicker } from "@/components/ui/calendar";
@@ -122,8 +122,9 @@ export default function Home() {
   const [isReceiptDialogOpen, setIsReceiptDialogOpen] = React.useState(false);
   const [selectedTransactionForReceipt, setSelectedTransactionForReceipt] = React.useState<SelectedTransactionForReceipt | null>(null);
   
-  const [historyFromDate, setHistoryFromDate] = React.useState<Date | undefined>(startOfMonth(new Date()));
-  const [historyToDate, setHistoryToDate] = React.useState<Date | undefined>(endOfMonth(new Date()));
+  const [historyDateFilter, setHistoryDateFilter] = React.useState('thisMonth');
+  const [historyFromDate, setHistoryFromDate] = React.useState<Date | undefined>(undefined);
+  const [historyToDate, setHistoryToDate] = React.useState<Date | undefined>(undefined);
   const [historyTypeFilter, setHistoryTypeFilter] = React.useState<'all' | 'income' | 'expense' | 'goals'>('all');
 
   const [isAddGoalDialogOpen, setIsAddGoalDialogOpen] = React.useState(false);
@@ -667,28 +668,32 @@ const openEditBudgetDialog = (budgetId: string) => {
     let filtered = [...transactions];
     const savingGoalIds = new Set(savingGoals.map(sg => sg.id));
 
-    // Filter by type
     if (historyTypeFilter === 'income' || historyTypeFilter === 'expense') {
         filtered = filtered.filter(t => t.type === historyTypeFilter && !savingGoalIds.has(t.category));
     } else if (historyTypeFilter === 'goals') {
         filtered = filtered.filter(t => t.type === 'expense' && savingGoalIds.has(t.category));
     }
-    
-    // Filter by date
-    if (historyFromDate && historyToDate) {
-      const start = startOfDay(historyFromDate);
-      const end = endOfDay(historyToDate);
-      filtered = filtered.filter(t => t.date >= start && t.date <= end);
-    } else if (historyFromDate) {
-      const start = startOfDay(historyFromDate);
-      filtered = filtered.filter(t => t.date >= start);
-    } else if (historyToDate) {
-      const end = endOfDay(historyToDate);
-      filtered = filtered.filter(t => t.date <= end);
+
+    const now = new Date();
+    if (historyDateFilter === 'thisMonth') {
+        const start = startOfMonth(now);
+        filtered = filtered.filter(t => t.date >= start);
+    } else if (historyDateFilter === 'lastMonth') {
+        const start = startOfMonth(subMonths(now, 1));
+        const end = endOfMonth(subMonths(now, 1));
+        filtered = filtered.filter(t => t.date >= start && t.date <= end);
+    } else if (historyDateFilter === 'last3Months') {
+        const start = startOfMonth(subMonths(now, 2));
+        filtered = filtered.filter(t => t.date >= start);
+    } else if (historyDateFilter === 'custom' && historyFromDate && historyToDate) {
+        const start = startOfDay(historyFromDate);
+        const end = endOfDay(historyToDate);
+        filtered = filtered.filter(t => t.date >= start && t.date <= end);
     }
-    
+
     return filtered;
-  }, [transactions, historyFromDate, historyToDate, historyTypeFilter, savingGoals]);
+}, [transactions, historyDateFilter, historyTypeFilter, historyFromDate, historyToDate, savingGoals]);
+
 
   const groupedTransactions = React.useMemo(() => {
     return filteredTransactions.reduce((acc, t) => {
@@ -958,9 +963,28 @@ const openEditBudgetDialog = (budgetId: string) => {
           <div className="sticky top-0 bg-background z-10 p-4 border-b">
             <div className="flex items-center justify-between">
                 <h1 className="text-xl font-semibold">Transactions</h1>
+                 <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                            <Filter className="h-5 w-5" />
+                            <span className="sr-only">Filter Date Range</span>
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuRadioGroup value={historyDateFilter} onValueChange={setHistoryDateFilter}>
+                            <DropdownMenuLabel>Date Range</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuRadioItem value="thisMonth">This Month</DropdownMenuRadioItem>
+                            <DropdownMenuRadioItem value="lastMonth">Last Month</DropdownMenuRadioItem>
+                            <DropdownMenuRadioItem value="last3Months">Last 3 Months</DropdownMenuRadioItem>
+                            <DropdownMenuRadioItem value="allTime">All Time</DropdownMenuRadioItem>
+                            <DropdownMenuRadioItem value="custom">Custom Range</DropdownMenuRadioItem>
+                        </DropdownMenuRadioGroup>
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </div>
-            <div className="space-y-2 mt-2">
-                <div className="grid grid-cols-2 gap-2">
+            {historyDateFilter === 'custom' && (
+                <div className="grid grid-cols-2 gap-2 mt-2 pt-2 border-t">
                     <Popover>
                         <PopoverTrigger asChild>
                             <Button
@@ -979,7 +1003,7 @@ const openEditBudgetDialog = (budgetId: string) => {
                             <CalendarPicker
                                 mode="single"
                                 selected={historyFromDate}
-                                onSelect={setHistoryFromDate}
+                                onSelect={(date) => { setHistoryFromDate(date); if (date && historyToDate && date > historyToDate) { setHistoryToDate(date); } }}
                                 initialFocus
                             />
                         </PopoverContent>
@@ -1009,7 +1033,9 @@ const openEditBudgetDialog = (budgetId: string) => {
                         </PopoverContent>
                     </Popover>
                 </div>
-                 <div className="text-xs text-muted-foreground pt-1">
+            )}
+            <div className="flex flex-col gap-2 mt-2">
+                 <div className="text-xs text-muted-foreground">
                     Viewing {filteredTransactions.length} transaction(s) with a net total of <span className={cn("font-semibold", totalFilteredAmount >= 0 ? "text-accent" : "text-destructive")}>{formatCurrency(totalFilteredAmount)}</span>.
                 </div>
                  <div className="flex items-center gap-2">
@@ -1351,7 +1377,7 @@ const openEditBudgetDialog = (budgetId: string) => {
         open={isReceiptDialogOpen}
         onOpenChange={setIsReceiptDialogOpen}
         transaction={selectedTransactionForReceipt?.transaction ?? null}
-        categoryOrGoalDisplay={selectedTransactionForReceipt?.categoryOrGoalDisplay ?? null}
+        categoryOrGoalDisplay={selectedTransactionForReceipt?.displayInfo ?? null}
       />
 
       {transactionToDelete && (
@@ -1412,4 +1438,5 @@ const openEditBudgetDialog = (budgetId: string) => {
   );
 }
 
+    
     
