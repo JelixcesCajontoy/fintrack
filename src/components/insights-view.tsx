@@ -4,6 +4,7 @@
 import * as React from 'react';
 import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Separator } from "@/components/ui/separator";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Pie, PieChart, Cell, Sector } from 'recharts';
 import type { Transaction, Budget, Category } from '@/types';
 import { formatCurrency } from '@/lib/utils';
@@ -167,56 +168,56 @@ export const InsightsView: React.FC<InsightsViewProps> = ({
     return (
         <div className="space-y-4">
             {/* Summary Cards */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                 <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>
-                        <TrendingDown className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{formatCurrency(currentMonthTotals.expenses)}</div>
-                        <p className={`text-xs ${expenseChange >= 0 && previousMonthTotals.expenses > 0 ? 'text-destructive' : (expenseChange < 0 ? 'text-accent' : 'text-muted-foreground')}`}>
-                            {previousMonthTotals.expenses > 0 || currentMonthTotals.expenses > 0 ? (
-                                <>
-                                    {expenseChange >= 0 ? '+' : ''}{formatCurrency(expenseChange)} {formatPercentage(expenseChangePercent)} vs last month
-                                </>
-                             ) : (
-                                 "No expense data for comparison"
-                             )}
-                        </p>
-                    </CardContent>
-                </Card>
-                 <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Net Savings</CardTitle>
-                        <PiggyBank className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{formatCurrency(currentMonthTotals.actualSavings)}</div>
-                         <p className={`text-xs ${savingsChange >= 0 && previousMonthTotals.actualSavings !== 0 ? 'text-accent' : (savingsChange < 0 ? 'text-destructive' : 'text-muted-foreground')}`}>
-                            {previousMonthTotals.actualSavings !== 0 || currentMonthTotals.actualSavings !== 0 ? (
-                                <>
-                                    {savingsChange >= 0 ? '+' : ''}{formatCurrency(savingsChange)} {formatPercentage(savingsChangePercent)} vs last month
-                                </>
-                             ) : (
-                                 "No savings data for comparison"
-                             )}
-                         </p>
-                    </CardContent>
-                </Card>
-                 <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Income vs Expenses</CardTitle>
-                        <Scale className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                         <div className="text-2xl font-bold">{formatCurrency(currentMonthTotals.income - currentMonthTotals.expenses)}</div>
-                        <p className="text-xs text-muted-foreground truncate">
-                           Income: {formatCurrency(currentMonthTotals.income)} | Expenses: {formatCurrency(currentMonthTotals.expenses)}
-                        </p>
-                    </CardContent>
-                </Card>
-            </div>
+             <Card>
+                <CardHeader className="pb-4">
+                    <CardTitle>Monthly Snapshot</CardTitle>
+                    <CardDescription>
+                        A summary of your finances for {format(new Date(currentMonth + '-01T00:00:00'), 'MMMM yyyy')}.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="flex items-start justify-between">
+                        <div>
+                            <p className="text-sm text-muted-foreground">Total Expenses</p>
+                            <p className="text-2xl font-bold">{formatCurrency(currentMonthTotals.expenses)}</p>
+                            <p className={`text-xs ${expenseChange >= 0 && previousMonthTotals.expenses > 0 ? 'text-destructive' : (expenseChange < 0 ? 'text-accent' : 'text-muted-foreground')}`}>
+                                {previousMonthTotals.expenses > 0 || currentMonthTotals.expenses > 0 ? (
+                                    <>
+                                        {expenseChange >= 0 ? '+' : ''}{formatCurrency(expenseChange)} {formatPercentage(expenseChangePercent)} vs last month
+                                    </>
+                                ) : "No expense data for comparison"}
+                            </p>
+                        </div>
+                        <TrendingDown className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                    <Separator />
+                    <div className="flex items-start justify-between">
+                         <div>
+                            <p className="text-sm text-muted-foreground">Net Savings</p>
+                            <p className="text-2xl font-bold">{formatCurrency(currentMonthTotals.actualSavings)}</p>
+                            <p className={`text-xs ${savingsChange >= 0 && previousMonthTotals.actualSavings !== 0 ? 'text-accent' : (savingsChange < 0 ? 'text-destructive' : 'text-muted-foreground')}`}>
+                                {previousMonthTotals.actualSavings !== 0 || currentMonthTotals.actualSavings !== 0 ? (
+                                    <>
+                                        {savingsChange >= 0 ? '+' : ''}{formatCurrency(savingsChange)} {formatPercentage(savingsChangePercent)} vs last month
+                                    </>
+                                ) : "No savings data for comparison"}
+                             </p>
+                        </div>
+                        <PiggyBank className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                    <Separator />
+                     <div className="flex items-start justify-between">
+                         <div>
+                            <p className="text-sm text-muted-foreground">Income vs Expenses</p>
+                            <p className="text-2xl font-bold">{formatCurrency(currentMonthTotals.income - currentMonthTotals.expenses)}</p>
+                             <p className="text-xs text-muted-foreground truncate">
+                                Income: {formatCurrency(currentMonthTotals.income)} | Expenses: {formatCurrency(currentMonthTotals.expenses)}
+                            </p>
+                        </div>
+                        <Scale className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                </CardContent>
+            </Card>
 
             {/* Consolidated Chart Card */}
             <Card>
