@@ -13,7 +13,7 @@ import BudgetCard from "@/components/budget-card";
 import TransactionListItem from "@/components/transaction-list-item";
 import { SpendingChart } from "@/components/spending-chart";
 import type { Transaction, Budget, Category, AppData, SavingGoal, TransactionType, MonthlyReport } from "@/types";
-import { format, isToday, isYesterday, startOfMonth, subMonths, endOfMonth, parseISO } from 'date-fns';
+import { format, isToday, isYesterday, startOfMonth, subMonths, endOfMonth, parseISO, startOfDay, endOfDay } from 'date-fns';
 import { loadAppData, saveAppData, defaultAppData } from "@/lib/storage";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -49,6 +49,7 @@ import { useDriverTour } from "@/hooks/use-driver-tour";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Progress } from "@/components/ui/progress";
 import { AddSavingGoalDialog } from "@/components/add-saving-goal-dialog";
+import { Calendar as CalendarPicker } from "@/components/ui/calendar";
 
 
 interface CategoryOrGoalDisplayForReceipt {
@@ -120,8 +121,9 @@ export default function Home() {
 
   const [isReceiptDialogOpen, setIsReceiptDialogOpen] = React.useState(false);
   const [selectedTransactionForReceipt, setSelectedTransactionForReceipt] = React.useState<SelectedTransactionForReceipt | null>(null);
-
-  const [historyDateFilter, setHistoryDateFilter] = React.useState('thisMonth');
+  
+  const [historyFromDate, setHistoryFromDate] = React.useState<Date | undefined>(startOfMonth(new Date()));
+  const [historyToDate, setHistoryToDate] = React.useState<Date | undefined>(endOfMonth(new Date()));
   const [historyTypeFilter, setHistoryTypeFilter] = React.useState<'all' | 'income' | 'expense' | 'goals'>('all');
 
   const [isAddGoalDialogOpen, setIsAddGoalDialogOpen] = React.useState(false);
@@ -208,7 +210,7 @@ React.useEffect(() => {
     }, [initialTab]);
 
   useDriverTour({
-    tourId: 'welcome-tour',
+    tourId: 'welcome-tour-session',
     steps: welcomeTourSteps,
     condition: isLoaded && user,
   });
@@ -673,21 +675,20 @@ const openEditBudgetDialog = (budgetId: string) => {
     }
     
     // Filter by date
-    const now = new Date();
-    if (historyDateFilter === 'thisMonth') {
-      const startOfThisMonth = startOfMonth(now);
-      filtered = filtered.filter(t => t.date >= startOfThisMonth);
-    } else if (historyDateFilter === 'lastMonth') {
-      const startOfLastMonth = startOfMonth(subMonths(now, 1));
-      const endOfLastMonth = startOfMonth(now);
-      filtered = filtered.filter(t => t.date >= startOfLastMonth && t.date < endOfLastMonth);
-    } else if (historyDateFilter === 'last3Months') {
-      const startOf3MonthsAgo = startOfMonth(subMonths(now, 3));
-      filtered = filtered.filter(t => t.date >= startOf3MonthsAgo);
+    if (historyFromDate && historyToDate) {
+      const start = startOfDay(historyFromDate);
+      const end = endOfDay(historyToDate);
+      filtered = filtered.filter(t => t.date >= start && t.date <= end);
+    } else if (historyFromDate) {
+      const start = startOfDay(historyFromDate);
+      filtered = filtered.filter(t => t.date >= start);
+    } else if (historyToDate) {
+      const end = endOfDay(historyToDate);
+      filtered = filtered.filter(t => t.date <= end);
     }
-
+    
     return filtered;
-  }, [transactions, historyDateFilter, historyTypeFilter, savingGoals]);
+  }, [transactions, historyFromDate, historyToDate, historyTypeFilter, savingGoals]);
 
   const groupedTransactions = React.useMemo(() => {
     return filteredTransactions.reduce((acc, t) => {
@@ -957,35 +958,58 @@ const openEditBudgetDialog = (budgetId: string) => {
           <div className="sticky top-0 bg-background z-10 p-4 border-b">
             <div className="flex items-center justify-between">
                 <h1 className="text-xl font-semibold">Transactions</h1>
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                            <Filter className="h-5 w-5" />
-                            <span className="sr-only">Filter Date Range</span>
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <DropdownMenuItem onSelect={() => setHistoryDateFilter('thisMonth')}>
-                            <span className="w-40">This Month</span>
-                            {historyDateFilter === 'thisMonth' && <Check className="h-4 w-4 ml-2" />}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onSelect={() => setHistoryDateFilter('lastMonth')}>
-                            <span className="w-40">Last Month</span>
-                             {historyDateFilter === 'lastMonth' && <Check className="h-4 w-4 ml-2" />}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onSelect={() => setHistoryDateFilter('last3Months')}>
-                            <span className="w-40">Last 3 Months</span>
-                            {historyDateFilter === 'last3Months' && <Check className="h-4 w-4 ml-2" />}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onSelect={() => setHistoryDateFilter('allTime')}>
-                            <span className="w-40">All Time</span>
-                            {historyDateFilter === 'allTime' && <Check className="h-4 w-4 ml-2" />}
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
             </div>
-             <div className="flex flex-col gap-2 mt-2">
-                <div className="text-xs text-muted-foreground">
+            <div className="space-y-2 mt-2">
+                <div className="grid grid-cols-2 gap-2">
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button
+                                id="date"
+                                variant={"outline"}
+                                className={cn(
+                                "w-full justify-start text-left font-normal",
+                                !historyFromDate && "text-muted-foreground"
+                                )}
+                            >
+                                <Calendar className="mr-2 h-4 w-4" />
+                                {historyFromDate ? format(historyFromDate, "MMM d, yyyy") : <span>Start Date</span>}
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                            <CalendarPicker
+                                mode="single"
+                                selected={historyFromDate}
+                                onSelect={setHistoryFromDate}
+                                initialFocus
+                            />
+                        </PopoverContent>
+                    </Popover>
+                    <Popover>
+                        <PopoverTrigger asChild>
+                             <Button
+                                id="date-to"
+                                variant={"outline"}
+                                className={cn(
+                                "w-full justify-start text-left font-normal",
+                                !historyToDate && "text-muted-foreground"
+                                )}
+                            >
+                                <Calendar className="mr-2 h-4 w-4" />
+                                {historyToDate ? format(historyToDate, "MMM d, yyyy") : <span>End Date</span>}
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                            <CalendarPicker
+                                mode="single"
+                                selected={historyToDate}
+                                onSelect={setHistoryToDate}
+                                disabled={(date) => historyFromDate ? date < historyFromDate : false}
+                                initialFocus
+                            />
+                        </PopoverContent>
+                    </Popover>
+                </div>
+                 <div className="text-xs text-muted-foreground pt-1">
                     Viewing {filteredTransactions.length} transaction(s) with a net total of <span className={cn("font-semibold", totalFilteredAmount >= 0 ? "text-accent" : "text-destructive")}>{formatCurrency(totalFilteredAmount)}</span>.
                 </div>
                  <div className="flex items-center gap-2">
@@ -1327,7 +1351,7 @@ const openEditBudgetDialog = (budgetId: string) => {
         open={isReceiptDialogOpen}
         onOpenChange={setIsReceiptDialogOpen}
         transaction={selectedTransactionForReceipt?.transaction ?? null}
-        categoryOrGoalDisplay={selectedTransactionForReceipt?.displayInfo ?? null}
+        categoryOrGoalDisplay={selectedTransactionForReceipt?.categoryOrGoalDisplay ?? null}
       />
 
       {transactionToDelete && (
@@ -1387,3 +1411,5 @@ const openEditBudgetDialog = (budgetId: string) => {
     </div>
   );
 }
+
+    
