@@ -113,13 +113,22 @@ export default function ProfilePage() {
   }, [user?.displayName]);
 
   const handleResetData = () => {
+    if (!user) {
+         toast({ title: "Error", description: "You must be logged in to reset data.", variant: "destructive" });
+         return;
+    }
     try {
-      clearAppData();
+      clearAppData(user.uid);
       toast({
         title: "Data Reset Successful",
-        description: "All local application data has been cleared. The app will now reload.",
+        description: "All local application data for your account has been cleared.",
         variant: "default",
       });
+      // The app will effectively "reload" data state on next login or action that calls loadAppData.
+      // For immediate effect, you might want to force a state refresh in your main page component.
+      // A simple reload is fine for now.
+      window.location.href = '/'; 
+
     } catch (error) {
       toast({
         title: "Error Resetting Data",
@@ -346,9 +355,8 @@ export default function ProfilePage() {
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>
               This action cannot be undone. This will permanently delete all
-              your financial data (transactions, budgets, categories, goals) stored locally on this device/browser.
+              your financial data (transactions, budgets, categories, goals) stored locally on this device/browser for your account.
               It will not affect your account itself.
-              The application will reload after reset.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

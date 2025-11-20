@@ -141,7 +141,7 @@ export default function Home() {
 
   React.useEffect(() => {
     if (user) {
-        const loadedData = loadAppData();
+        const loadedData = loadAppData(user.uid);
         setAppData(loadedData);
         setTempIncome(loadedData.monthlyIncome?.toString() ?? '');
         setIsLoaded(true);
@@ -200,10 +200,10 @@ export default function Home() {
 
 
 React.useEffect(() => {
-    if (isLoaded) {
-        saveAppData(appData);
+    if (isLoaded && user) {
+        saveAppData(appData, user.uid);
     }
-}, [appData, isLoaded]);
+}, [appData, isLoaded, user]);
 
     React.useEffect(() => {
         // This effect keeps the local state `currentTab` in sync with the URL query param.

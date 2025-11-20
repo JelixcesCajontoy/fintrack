@@ -17,6 +17,7 @@ import {
 import { useRouter, usePathname } from 'next/navigation';
 import Image from 'next/image'; // Import Next.js Image component
 import { useToast } from "@/hooks/use-toast"; 
+import { clearAppData } from '@/lib/storage';
 
 interface AuthContextType {
   user: FirebaseUser | null;
@@ -44,12 +45,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (currentUser && currentUser.emailVerified) {
         setUser(currentUser);
       } else {
+        if(user) { // if there was a user before, clear their data
+          clearAppData(user.uid);
+        }
         setUser(null);
       }
       setLoading(false);
     });
     return () => unsubscribe();
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -95,13 +99,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const logout = async () => {
+    if(user) {
+      clearAppData(user.uid);
+    }
     await signOut(auth);
   };
 
   const updateUserDisplayName = async (newName: string) => {
     if (auth.currentUser) {
       await updateProfile(auth.currentUser, { displayName: newName });
-      setUser(auth.currentUser ? { ...auth.currentUser, displayName: newName } : null);
+      // This will trigger onAuthStateChanged and update the user state reactively
+      setUser(auth.currentUser ? { ...auth.currentUser } : null);
     } else {
       throw new Error("No user currently signed in to update display name.");
     }

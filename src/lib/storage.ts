@@ -3,7 +3,10 @@
 import type { AppData, SavingGoalCategory, Category, MonthlyReport } from '@/types';
 import { format, parseISO } from 'date-fns';
 
-const APP_DATA_KEY = 'finTrackMobileData';
+const APP_DATA_KEY_PREFIX = 'finTrackMobileData';
+
+const getStorageKey = (userId: string): string => `${APP_DATA_KEY_PREFIX}-${userId}`;
+
 
 // Default categories
 const defaultCategories: AppData['categories'] = [
@@ -74,8 +77,8 @@ export const defaultAppData: AppData = {
   monthlyReports: [],
 };
 
-export const loadAppData = (): AppData => {
-  if (typeof window === 'undefined') {
+export const loadAppData = (userId: string): AppData => {
+  if (typeof window === 'undefined' || !userId) {
     return {
         ...defaultAppData,
         categories: defaultCategories.map(c => ({...c})),
@@ -83,7 +86,7 @@ export const loadAppData = (): AppData => {
     };
   }
   try {
-    const storedData = localStorage.getItem(APP_DATA_KEY);
+    const storedData = localStorage.getItem(getStorageKey(userId));
     if (storedData) {
       const parsedData = JSON.parse(storedData);
       const currentMonth = format(new Date(), 'yyyy-MM');
@@ -174,8 +177,8 @@ export const loadAppData = (): AppData => {
   };
 };
 
-export const saveAppData = (data: AppData) => {
-   if (typeof window === 'undefined') return;
+export const saveAppData = (data: AppData, userId: string) => {
+   if (typeof window === 'undefined' || !userId) return;
   try {
     const dataToStore = {
       ...data,
@@ -199,14 +202,14 @@ export const saveAppData = (data: AppData) => {
       seenTours: data.seenTours,
       monthlyReports: data.monthlyReports,
     };
-    localStorage.setItem(APP_DATA_KEY, JSON.stringify(dataToStore));
+    localStorage.setItem(getStorageKey(userId), JSON.stringify(dataToStore));
   } catch (error) {
     console.error("Failed to save app data to localStorage:", error);
   }
 };
 
-export const clearAppData = () => {
-   if (typeof window === 'undefined') return;
-  localStorage.removeItem(APP_DATA_KEY);
-  window.location.reload();
+export const clearAppData = (userId: string) => {
+   if (typeof window === 'undefined' || !userId) return;
+  localStorage.removeItem(getStorageKey(userId));
+  // Don't reload here, let the calling context handle UI changes
 };
