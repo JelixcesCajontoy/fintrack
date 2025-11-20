@@ -37,7 +37,7 @@ The Context Diagram shows the entire system as a single process and its interact
 
 ## Level 1: System Breakdown
 
-The Level 1 DFD breaks the "FinTrack Mobile" system into its major internal processes and shows how data flows between them and to the internal data store.
+The Level 1 DFD breaks the "FinTrack Mobile" system into its major internal processes and shows how data flows between them and to the internal data store, which is now user-specific.
 
 ```
                                           +-----------------+
@@ -53,9 +53,10 @@ The Level 1 DFD breaks the "FinTrack Mobile" system into its major internal proc
         |   |                                                                              |
         |   +------------------------------------------------------------------------------+
         |                                                                                    |
-        |                                                                                    v
+        +------------------------------------------------------------------------------------+
+        |                                                                                    |
         |                                       +-------------------+<---(J) Write Data---->+-------------------+
-        +---------------------------------------|                   |                      |                   |
+        +---------------------------------------|   User-Specific   |                      |                   |
                                                 |   Local App Data  |<---(L) Save Report---|  3.0 Generate     |
 --(I) Read Data-->+--------------------+        |    (Data Store)   |                      |      Reports      |
 |                 |                   |        |                   |                      |                   |
@@ -68,13 +69,13 @@ The Level 1 DFD breaks the "FinTrack Mobile" system into its major internal proc
 
 ### Processes (Level 1):
 
-*   **1.0 Manage User Session**: Handles all interactions with Firebase Authentication, including login, registration, and session management.
-*   **2.0 Display UI & Dashboards**: Renders all visual components, including transaction lists, budget cards, charts, and insights. This process reads from the `Local App Data` store.
-*   **3.0 Generate Reports**: A time-triggered process that runs at the end of each month. It reads transaction data for the past month and generates a static `MonthlyReport` which is then written back to the `Local App Data` store.
+*   **1.0 Manage User Session**: Handles all interactions with Firebase Authentication, including login, registration, and session management. It provides the authenticated `User Profile`.
+*   **2.0 Display UI & Dashboards**: Renders all visual components. It now uses the `User Profile` (containing the UID) to read from and write to the correct user's partition in the `User-Specific Local App Data` store.
+*   **3.0 Generate Reports**: A time-triggered process. It uses the `User Profile` to read the correct user's transaction data and writes the generated report back to that same user's data partition.
 
 ### Data Stores (Level 1):
 
-*   **Local App Data**: Represents the app's entire state persisted in the device's Local Storage. This includes:
+*   **User-Specific Local App Data**: Represents the app's state persisted in the device's Local Storage. **Crucially, this data is now partitioned and accessed using the user's unique ID (UID) from their profile.** This includes:
     *   `transactions`
     *   `budgets`
     *   `categories`
@@ -85,11 +86,11 @@ The Level 1 DFD breaks the "FinTrack Mobile" system into its major internal proc
 ### Data Flows (Level 1):
 
 *   **(D) UI Render**: The final rendered data presented to the user.
-*   **(E) Manage Data**: User-initiated actions to create, update, or delete data (e.g., submitting a new transaction, creating a budget).
+*   **(E) Manage Data**: User-initiated actions to create, update, or delete data.
 *   **(F) User Auth**: Credentials sent to Firebase for authentication.
 *   **(G) Auth Result**: The success or failure response from Firebase.
-*   **(H) User Profile**: The authenticated user's profile information (UID, display name), which is used across the app.
-*   **(I) Read Data**: The flow of reading all necessary financial data from the data store to be rendered in the UI.
-*   **(J) Write Data**: The flow of writing new or updated data (transactions, budgets, etc.) to the data store.
-*   **(K) Read Data**: The `Generate Reports` process reads all of the previous month's transactions.
-*   **(L) Save Report**: The `Generate Reports` process writes the newly created static report back to the `monthlyReports` array in the data store.
+*   **(H) User Profile**: The authenticated user's profile information (UID, email), which is now essential for accessing the correct partition of the local data store. It flows to all processes that need to read or write data.
+*   **(I) Read Data**: The flow of reading user-specific financial data from the data store to be rendered in the UI. This operation requires the `User Profile` (UID).
+*   **(J) Write Data**: The flow of writing new or updated data (transactions, budgets, etc.) to the user-specific partition of the data store. This operation requires the `User Profile` (UID).
+*   **(K) Read Data**: The `Generate Reports` process reads the previous month's transactions from the specific user's data partition. This operation requires the `User Profile` (UID).
+*   **(L) Save Report**: The `Generate Reports` process writes the new report to the specific user's data partition. This operation requires the `User Profile` (UID).
