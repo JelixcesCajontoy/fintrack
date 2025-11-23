@@ -57,19 +57,42 @@ interface AddCategoryDialogProps {
   categories: Category[]; 
 }
 
-// Get a list of available Lucide icon names
-const allLucideExportKeys = Object.keys(LucideIcons) as Array<keyof typeof LucideIcons>;
 
-const iconNames = allLucideExportKeys.filter(key => {
-  const ExportedValue = LucideIcons[key];
-  // Primary check: Is it a function and does it have the React forward_ref symbol?
-  // Lucide icons are created with createLucideIcon which uses forwardRef.
-  // Also ensure the key itself is PascalCase, which is the convention for exported icon components.
-  return typeof ExportedValue === 'function' &&
-         // @ts-ignore $$typeof is an internal React property but reliable for this check
-         ExportedValue.$$typeof === Symbol.for('react.forward_ref') &&
-         (key.length > 0 && key[0] >= 'A' && key[0] <= 'Z' && /^[A-Z][A-Za-z0-9]*$/.test(key)); // Ensure PascalCase
-}).sort(); // Sort the names alphabetically for the dropdown
+const iconNames: (keyof typeof LucideIcons)[] = [
+  "Accessibility", "Activity", "Airplay", "AlarmClock", "AlertCircle", "Archive",
+  "ArrowDown", "ArrowLeft", "ArrowRight", "ArrowUp", "Award", "Backpack", "Badge",
+  "BaggageClaim", "Banana", "Banknote", "BarChart", "Basket", "Battery", "Bed",
+  "Beer", "Bell", "Bike", "Bitcoin", "Book", "BookOpen", "Bookmark", "Briefcase",
+  "Brush", "Bug", "Building", "Bus", "Calculator", "Calendar", "Camera", "Car",
+  "Carrot", "Check", "ChevronDown", "ChevronLeft", "ChevronRight", "ChevronUp",
+  "Circle", "Clipboard", "Clock", "Cloud", "Code", "Cog", "Coins", "Compass",
+  "Computer", "Copy", "CreditCard", "CupSoda", "Database", "Delete", "Diamond",
+  "Dog", "DollarSign", "Download", "Droplet", "Dumbbell", "Edit", "Egg",
+  "ExternalLink", "Eye", "Facebook", "Feather", "File", "Film", "Filter", "Flag",
+  "Flame", "FlaskConical", "Flower", "Folder", "Football", "Forklift", "Forward",
+  "Frown", "Fuel", "FunctionSquare", "Gamepad2", "Gem", "Gift", "Github",
+  "Gitlab", "Globe", "GraduationCap", "Grid", "Hammer", "Hand", "HardDrive",
+  "Hash", "Headphones", "Heart", "HeartHandshake", "HeartPulse", "HelpCircle", "Home", "Image", "Inbox",
+  "Instagram", "Key", "Keyboard", "Landmark", "Languages", "Laptop", "Laugh",
+  "Layers", "Layout", "Library", "LifeBuoy", "Lightbulb", "Link", "List",
+  "Linkedin", "Loader", "Lock", "LogIn", "LogOut", "Mail", "Map", "MapPin", "Maximize",
+  "Meh", "Menu", "MessageCircle", "MessageSquare", "Mic", "Minimize", "Minus",
+  "Monitor", "Moon", "MoreHorizontal", "MoreVertical", "Mouse", "Move", "Music",
+  "Navigation", "Package", "PaintRoller", "Palette", "Paperclip", "PartyPopper", "Pause", "Pen", "Percent",
+  "PersonStanding", "Phone", "PieChart", "PiggyBank", "Pin", "Plane", "PlaneTakeoff", "Play", "Plug",
+  "Plus", "Pocket", "Podcast", "Power", "Printer", "Puzzle", "QrCode", "Quote",
+  "Radio", "Receipt", "RectangleHorizontal", "Recycle", "RefreshCcw", "RefreshCw", "Repeat",
+  "Reply", "Rocket", "Save", "Scale", "School", "ScreenShare", "Search", "Send",
+  "Settings", "Share", "Share2", "Sheet", "Shield", "ShieldAlert", "Shirt", "ShoppingCart",
+  "Sigma", "Signal", "Siren", "Slack", "Smartphone", "Smile", "Speaker", "Star",
+  "Store", "Sun", "Sunrise", "Sunset", "Table", "Tablet", "Tag", "Target", "Tent",
+  "Terminal", "ThumbsDown", "ThumbsUp", "Ticket", "Timer", "ToyBrick", "Train",
+  "Trash", "Trash2", "TrendingDown", "TrendingUp", "Triangle", "Trophy", "Truck",
+  "Twitch", "Twitter", "Type", "Umbrella", "Unlink", "Upload", "Utensils", "UtensilsCrossed",
+  "Verified", "Video", "Voicemail", "Volume", "Volume1", "Volume2", "VolumeX",
+  "Wallet", "Watch", "Wifi", "Wind", "Wine", "WrapText", "Wrench", "X", "Youtube",
+  "Zap"
+].sort();
 
 
 export function AddCategoryDialog({ open, onOpenChange, onSaveCategory, existingCategory, categories }: AddCategoryDialogProps) {
