@@ -59,40 +59,26 @@ interface AddCategoryDialogProps {
 
 
 const iconNames: (keyof typeof LucideIcons)[] = [
-  "Accessibility", "Activity", "Airplay", "AlarmClock", "AlertCircle", "Archive",
-  "ArrowDown", "ArrowLeft", "ArrowRight", "ArrowUp", "Award", "Backpack", "Badge",
-  "BaggageClaim", "Banana", "Banknote", "BarChart", "Basket", "Battery", "Bed",
-  "Beer", "Bell", "Bike", "Bitcoin", "Book", "BookOpen", "Bookmark", "Briefcase",
-  "Brush", "Bug", "Building", "Bus", "Calculator", "Calendar", "Camera", "Car",
-  "Carrot", "Check", "ChevronDown", "ChevronLeft", "ChevronRight", "ChevronUp",
-  "Circle", "Clipboard", "Clock", "Cloud", "Code", "Cog", "Coins", "Compass",
-  "Computer", "Copy", "CreditCard", "CupSoda", "Database", "Delete", "Diamond",
-  "Dog", "DollarSign", "Download", "Droplet", "Dumbbell", "Edit", "Egg",
-  "ExternalLink", "Eye", "Facebook", "Feather", "File", "Film", "Filter", "Flag",
-  "Flame", "FlaskConical", "Flower", "Folder", "Football", "Forklift", "Forward",
-  "Frown", "Fuel", "FunctionSquare", "Gamepad2", "Gem", "Gift", "Github",
-  "Gitlab", "Globe", "GraduationCap", "Grid", "Hammer", "Hand", "HardDrive",
-  "Hash", "Headphones", "Heart", "HeartHandshake", "HeartPulse", "HelpCircle", "Home", "Image", "Inbox",
-  "Instagram", "Key", "Keyboard", "Landmark", "Languages", "Laptop", "Laugh",
-  "Layers", "Layout", "Library", "LifeBuoy", "Lightbulb", "Link", "List",
-  "Linkedin", "Loader", "Lock", "LogIn", "LogOut", "Mail", "Map", "MapPin", "Maximize",
-  "Meh", "Menu", "MessageCircle", "MessageSquare", "Mic", "Minimize", "Minus",
-  "Monitor", "Moon", "MoreHorizontal", "MoreVertical", "Mouse", "Move", "Music",
-  "Navigation", "Package", "PaintRoller", "Palette", "Paperclip", "PartyPopper", "Pause", "Pen", "Percent",
-  "PersonStanding", "Phone", "PieChart", "PiggyBank", "Pin", "Plane", "PlaneTakeoff", "Play", "Plug",
-  "Plus", "Pocket", "Podcast", "Power", "Printer", "Puzzle", "QrCode", "Quote",
-  "Radio", "Receipt", "RectangleHorizontal", "Recycle", "RefreshCcw", "RefreshCw", "Repeat",
-  "Reply", "Rocket", "Save", "Scale", "School", "ScreenShare", "Search", "Send",
-  "Settings", "Share", "Share2", "Sheet", "Shield", "ShieldAlert", "Shirt", "ShoppingCart",
-  "Sigma", "Signal", "Siren", "Slack", "Smartphone", "Smile", "Speaker", "Star",
-  "Store", "Sun", "Sunrise", "Sunset", "Table", "Tablet", "Tag", "Target", "Tent",
-  "Terminal", "ThumbsDown", "ThumbsUp", "Ticket", "Timer", "ToyBrick", "Train",
-  "Trash", "Trash2", "TrendingDown", "TrendingUp", "Triangle", "Trophy", "Truck",
-  "Twitch", "Twitter", "Type", "Umbrella", "Unlink", "Upload", "Utensils", "UtensilsCrossed",
-  "Verified", "Video", "Voicemail", "Volume", "Volume1", "Volume2", "VolumeX",
-  "Wallet", "Watch", "Wifi", "Wind", "Wine", "WrapText", "Wrench", "X", "Youtube",
-  "Zap"
+  // General & Shopping
+  "Archive", "Award", "Badge", "Basket", "Gift", "ShoppingCart", "Tag", "Ticket", "Store",
+  // Finance & Money
+  "Banknote", "Bitcoin", "Coins", "CreditCard", "DollarSign", "Landmark", "PiggyBank", "Receipt", "Wallet",
+  // Food & Drink
+  "Banana", "Beer", "Carrot", "CupSoda", "Egg", "Utensils", "UtensilsCrossed", "Wine",
+  // Travel & Transport
+  "BaggageClaim", "Bike", "Bus", "Car", "Fuel", "Plane", "PlaneTakeoff", "Train", "Truck",
+  // Home & Bills
+  "Bed", "Building", "Droplet", "Home", "Phone", "Plug", "Smartphone", "Umbrella", "Wifi", "Zap",
+  // People & Health
+  "Accessibility", "Dog", "Dumbbell", "Heart", "HeartHandshake", "HeartPulse", "PersonStanding", "Smile",
+  // Work & Education
+  "Book", "BookOpen", "Briefcase", "Calculator", "Calendar", "GraduationCap", "Pen", "School",
+  // Tech & Entertainment
+  "Airplay", "Camera", "Computer", "Gamepad2", "Headphones", "Laptop", "Monitor", "Mouse", "Music", "Youtube",
+  // Other
+  "Activity", "AlertCircle", "Bell", "Bookmark", "Check", "Circle", "Clock", "Cog", "Flag", "Folder", "HelpCircle", "Key", "Lightbulb", "Lock", "Map", "Package", "PartyPopper", "Puzzle", "Shield", "Star", "TrendingDown", "TrendingUp", "Trophy", "Wrench", "X"
 ].sort();
+
 
 
 export function AddCategoryDialog({ open, onOpenChange, onSaveCategory, existingCategory, categories }: AddCategoryDialogProps) {
